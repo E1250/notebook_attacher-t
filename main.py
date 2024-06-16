@@ -3,6 +3,7 @@ import streamlit as st
 from zipfile import ZipFile
 from attach_images_to_notebook import attach_images_back_to_notebook
 from extract_and_save_images import extract_and_save_images
+import shutil
 
 def main():
     parser = argparse.ArgumentParser(description='Extract and update images in Jupyter Notebook or revert images back to attachments.')
@@ -15,7 +16,6 @@ def main():
 
     revert_parser = subparsers.add_parser('revert', help='Update images back to attachments')
     revert_parser.add_argument('notebook_path', help='Path to the updated Jupyter Notebook file.')
-    revert_parser.add_argument('images_folder', help='Path to the folder containing images.')
     revert_parser.add_argument('output_notebook_path', help='Path to save the restored notebook file.')
 
     args = parser.parse_args()
@@ -23,7 +23,7 @@ def main():
     if args.command == 'extract':
         extract_and_save_images(args.notebook_path, args.output_dir, args.output_notebook_path)
     elif args.command == 'revert':
-        attach_images_back_to_notebook(args.notebook_path, args.images_folder, args.output_notebook_path)
+        attach_images_back_to_notebook(args.notebook_path, args.output_notebook_path)
     else:
         parser.print_help()
 
@@ -36,9 +36,10 @@ if __name__ == "__main__":
     command = st.sidebar.selectbox('Select Command', ['extract', 'revert'])
 
     if command == 'extract':
+        st.text('Extract images attached in a Jupyter Notebook and update the notebook with image paths.')
         notebook_path = st.file_uploader('Upload Jupyter Notebook', type=['ipynb'])
-        output_dir = st.text_input('Enter Output Directory Path:')
-        output_notebook_path = st.text_input('Enter Output Notebook Path:')
+        output_dir = st.text_input('Enter Output Directory Name:', value='extracted_images')
+        output_notebook_path = st.text_input('Enter Output Notebook Name:', value='modified_notebook.ipynb')
         
         if st.button('Extract Images and Update Notebook'):
             if notebook_path is not None:
@@ -47,14 +48,20 @@ if __name__ == "__main__":
                 extract_and_save_images(notebook_path.name, output_dir, output_notebook_path)
 
     elif command == 'revert':
-        notebook_path = st.file_uploader('Upload Updated Notebook', type=['ipynb'])
+        st.text('Attach images back to a Jupyter Notebook from a folder of images.')
+        notebook_path = st.file_uploader('Upload Notebook', type=['ipynb'])
         images_folder = st.file_uploader('Upload Images Folder as Zip', type=['zip'])
-        output_notebook_path = st.text_input('Enter Output Notebook Path:')
+        output_notebook_path = st.text_input('Enter Output Notebook Name:', value='attached_notebook.ipynb')
         
-        if st.button('Update Images Back to Attachments'):
+        if st.button('Attach Images Back to Notebook'):
             if notebook_path is not None and images_folder is not None:
+                # Extracting notebook
                 with open(notebook_path.name, 'wb') as f:
                     f.write(notebook_path.getvalue())
+                # Extracting images
                 with ZipFile(images_folder) as z:
-                    z.extractall(path='images_folder_extracted')
-                attach_images_back_to_notebook(notebook_path.name, 'images_folder_extracted', output_notebook_path)
+                    z.extractall(path='uploads')
+                attach_images_back_to_notebook(notebook_path.name, output_notebook_path)
+                
+                # Removing uploads folder
+                shutil.rmtree('uploads')
