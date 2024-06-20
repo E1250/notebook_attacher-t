@@ -45,61 +45,28 @@ def extract_and_save_images(notebook_path, output_dir, output_notebook_path):
         zip_file_path = os.path.join(main_output_dir, f'{main_output_dir}.zip')
         with ZipFile(zip_file_path, 'w') as zipf:
             zipf.write(output_notebook_full_path, os.path.relpath(output_notebook_full_path, main_output_dir))
+            
             for root, _, files in os.walk(os.path.join(main_output_dir, output_dir)):
                 for file in files:
                     file_path = os.path.join(root, file)
                     zipf.write(file_path, os.path.relpath(file_path, main_output_dir))
 
         st.success(f"Extracted {total_image_count} images to {output_dir} and updated the notebook. Saved as {output_notebook_full_path}")
-
-        # Provide a link to download the zip file
-        with open(zip_file_path, "rb") as f:
-            st.download_button(
-                label="Download Output Zip File default",
-                data=f,
-                file_name=f"{main_output_dir}.zip",
-            )
-            
-        with open(zip_file_path, "rb") as f:
-            st.download_button(
-                label="Download Output Zip File (application/zip)",
-                data=f,
-                file_name=f"{main_output_dir}.zip",
-                mime="application/zip"
-            )
-
-        with open(zip_file_path, "rb") as f:
-            st.download_button(
-                label="Download Output Zip File (application/x-zip)",
-                data=f,
-                file_name=f"{main_output_dir}.zip",
-                mime="application/x-zip"
-            )
-
-        with open(zip_file_path, "rb") as f:
-            st.download_button(
-                label="Download Output Zip File (application/x-zip-compressed)",
-                data=f,
-                file_name=f"{main_output_dir}.zip",
-                mime="application/x-zip-compressed"
-            )
-
-        with open(zip_file_path, "rb") as f:
-            st.download_button(
-                label="Download Output Zip File (application/octet-stream)",
-                data=f,
-                file_name=f"{main_output_dir}.zip",
-                mime="application/octet-stream"
-            )
-            
-   
+        
     except FileNotFoundError:
         st.error(f"File not found: {notebook_path}")
     except json.JSONDecodeError:
         st.error(f"Error decoding JSON from the file: {notebook_path}")
     except Exception as e:
         st.error(f"An error occurred: {e}")
-        
+     
+    with open(zip_file_path, "rb") as f:
+        st.download_button(
+            label="Download Output Zip File (application/zip)",
+            data=f,
+            file_name=f"{main_output_dir}.zip",
+            mime="application/zip"
+        )
         
         
 def main():
