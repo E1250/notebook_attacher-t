@@ -5,7 +5,7 @@ import argparse
 import streamlit as st
 from zipfile import ZipFile
 
-def extract_and_save_images(notebook_path, output_dir, output_notebook_path):
+def extract_and_save_images(notebook_path, output_dir):
     try:
         with open(notebook_path, 'r') as f:
             notebook_content = json.load(f)
@@ -37,7 +37,7 @@ def extract_and_save_images(notebook_path, output_dir, output_notebook_path):
                 cell['attachments'] = {}
                 cell['source'] = new_source_lines
 
-        output_notebook_full_path = os.path.join(main_output_dir, output_notebook_path)
+        output_notebook_full_path = os.path.join(main_output_dir, notebook_path.split('/')[-1])
         with open(output_notebook_full_path, 'w') as f:
             json.dump(notebook_content, f, indent=4)
         
@@ -62,7 +62,7 @@ def extract_and_save_images(notebook_path, output_dir, output_notebook_path):
      
     with open(zip_file_path, "rb") as f:
         st.download_button(
-            label="Download Output Zip File (application/zip)",
+            label="Download Output Zip File",
             data=f,
             file_name=f"{main_output_dir}.zip",
             mime="application/zip"
@@ -73,10 +73,9 @@ def main():
     parser = argparse.ArgumentParser(description="Extract images from a Jupyter notebook and save them to a directory")
     parser.add_argument("notebook_path", type=str, help="Path to the Jupyter notebook file")
     parser.add_argument("output_dir", type=str, help="Directory to save the extracted images", default="extracted_images")
-    parser.add_argument("output_notebook_path", type=str, help="Path to save the updated notebook with image paths", default="updated_notebook.ipynb")
     args = parser.parse_args()
 
-    extract_and_save_images(args.notebook_path, args.output_dir, args.output_notebook_path)
+    extract_and_save_images(args.notebook_path, args.output_dir)
 
 if __name__ == "__main__":
     main()

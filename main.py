@@ -12,18 +12,16 @@ def main():
     extract_parser = subparsers.add_parser('extract', help='Extract images and update notebook')
     extract_parser.add_argument('notebook_path', help='Path to the Jupyter Notebook file.')
     extract_parser.add_argument('output_dir', help='Directory to save extracted images.')
-    extract_parser.add_argument('output_notebook_path', help='Path to save the updated notebook file.')
 
     revert_parser = subparsers.add_parser('revert', help='Update images back to attachments')
     revert_parser.add_argument('notebook_path', help='Path to the updated Jupyter Notebook file.')
-    revert_parser.add_argument('output_notebook_path', help='Path to save the restored notebook file.')
 
     args = parser.parse_args()
 
     if args.command == 'extract':
-        extract_and_save_images(args.notebook_path, args.output_dir, args.output_notebook_path)
+        extract_and_save_images(args.notebook_path, args.output_dir)
     elif args.command == 'revert':
-        attach_images_back_to_notebook(args.notebook_path, args.output_notebook_path)
+        attach_images_back_to_notebook(args.notebook_path)
     else:
         parser.print_help()
 
@@ -39,19 +37,17 @@ if __name__ == "__main__":
         st.text('Extract images attached in a Jupyter Notebook and update the notebook with image paths.')
         notebook_path = st.file_uploader('Upload Jupyter Notebook', type=['ipynb'])
         output_dir = st.text_input('Enter Output Directory Name:', value='extracted_images')
-        output_notebook_path = st.text_input('Enter Output Notebook Name:', value='modified_notebook.ipynb')
         
         if st.button('Extract Images and Update Notebook'):
             if notebook_path is not None:
                 with open(notebook_path.name, 'wb') as f:
                     f.write(notebook_path.getvalue())
-                extract_and_save_images(notebook_path.name, output_dir, output_notebook_path)
+                extract_and_save_images(notebook_path.name, output_dir)
 
     elif command == 'revert':
         st.text('Attach images back to a Jupyter Notebook from a folder of images.')
         notebook_path = st.file_uploader('Upload Notebook', type=['ipynb'])
         images_folder = st.file_uploader('Upload Images Folder as Zip', type=['zip'])
-        output_notebook_path = st.text_input('Enter Output Notebook Name:', value='attached_notebook.ipynb')
         
         if st.button('Attach Images Back to Notebook'):
             if notebook_path is not None and images_folder is not None:
@@ -61,7 +57,7 @@ if __name__ == "__main__":
                 # Extracting images
                 with ZipFile(images_folder) as z:
                     z.extractall(path='uploads')
-                attach_images_back_to_notebook(notebook_path.name, output_notebook_path)
+                attach_images_back_to_notebook(notebook_path.name)
                 
                 # Removing uploads folder
                 shutil.rmtree('uploads')

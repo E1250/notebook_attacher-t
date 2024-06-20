@@ -4,7 +4,7 @@ import argparse
 import streamlit as st
 import os
 
-def attach_images_back_to_notebook(notebook_path, output_notebook_path, outputs_dir = 'outputs'):
+def attach_images_back_to_notebook(notebook_path, outputs_dir = 'outputs'):
     try:
         with open(notebook_path, 'r') as f:
             notebook_content = json.load(f)
@@ -40,18 +40,18 @@ def attach_images_back_to_notebook(notebook_path, output_notebook_path, outputs_
                 cell['attachments'] = new_attachments
                 cell['source'] = new_source_lines
                 
-                
-        with open(os.path.join(outputs_dir, output_notebook_path), 'w') as f:
+        output_nootebook_name = notebook_path.split('/')[-1]        
+        with open(os.path.join(outputs_dir, output_nootebook_name), 'w') as f:
             json.dump(notebook_content, f, indent=4)
 
-        st.success(f"Updated {total_image_count} images back to attachments and saved the notebook as {output_notebook_path}")
+        st.success(f"Updated {total_image_count} images back to attachments and saved the notebook as {output_nootebook_name}")
 
         # Provide the notebook as a downloadable file
-        with open(os.path.join(outputs_dir, output_notebook_path), 'rb') as f:
+        with open(os.path.join(outputs_dir, output_nootebook_name), 'rb') as f:
             st.download_button(
                 label="Download updated notebook",
                 data=f,
-                file_name=output_notebook_path,
+                file_name=output_nootebook_name,
                 mime="application/json"
             )
     
@@ -65,11 +65,10 @@ def attach_images_back_to_notebook(notebook_path, output_notebook_path, outputs_
 def main():
     parser = argparse.ArgumentParser(description="Update images back to attachments in a Jupyter notebook")
     parser.add_argument("notebook_path", type=str, help="Path to the Jupyter notebook file")
-    parser.add_argument("output_notebook_path", type=str, help="Path to save the updated notebook file", default="attached_notebook.ipynb")
     parser.add_argument("outputs_dir", type=str, help="Directory to save the output files", default="outputs")
     args = parser.parse_args()
     
-    attach_images_back_to_notebook(args.notebook_path, args.output_notebook_path, args.outputs_dir)
+    attach_images_back_to_notebook(args.notebook_path, args.outputs_dir)
 
 if __name__ == '__main__':
     main()
