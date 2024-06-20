@@ -4,7 +4,7 @@ import os
 import argparse
 import streamlit as st
 from zipfile import ZipFile
-from utils import platform_path
+from utils import platform_path, platform_relpath
 
 def extract_and_save_images(notebook_path, output_dir, is_linux=False):
     # try:
@@ -45,12 +45,12 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
         # Create a zip file with the images folder
         zip_file_path = platform_path(is_linux ,main_output_dir, f'{main_output_dir}.zip')
         with ZipFile(zip_file_path, 'w') as zipf:
-            zipf.write(output_notebook_full_path, platform_path(is_linux, output_notebook_full_path, main_output_dir))
+            zipf.write(output_notebook_full_path, platform_relpath(is_linux, output_notebook_full_path, main_output_dir))
             
             for root, _, files in os.walk(platform_path(is_linux, main_output_dir, output_dir)):
                 for file in files:
                     file_path = platform_path(is_linux, root, file)
-                    zipf.write(file_path, platform_path(is_linux, file_path, main_output_dir))
+                    zipf.write(file_path, platform_relpath(is_linux, file_path, main_output_dir))
 
         st.success(f"Extracted {total_image_count} images to {output_dir} and updated the notebook. Saved as {output_notebook_full_path}")
         
