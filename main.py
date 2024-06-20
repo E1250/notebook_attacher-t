@@ -12,6 +12,7 @@ def main():
     extract_parser = subparsers.add_parser('extract', help='Extract images and update notebook')
     extract_parser.add_argument('notebook_path', help='Path to the Jupyter Notebook file.')
     extract_parser.add_argument('output_dir', help='Directory to save extracted images.')
+    extract_parser.add_argument('is_unix', action='store_true', help='Flag to indicate if the platform is Linux.')
 
     revert_parser = subparsers.add_parser('revert', help='Update images back to attachments')
     revert_parser.add_argument('notebook_path', help='Path to the updated Jupyter Notebook file.')
@@ -19,7 +20,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == 'extract':
-        extract_and_save_images(args.notebook_path, args.output_dir)
+        extract_and_save_images(args.notebook_path, args.output_dir, args.is_linux)
     elif args.command == 'revert':
         attach_images_back_to_notebook(args.notebook_path)
     else:
@@ -36,13 +37,14 @@ if __name__ == "__main__":
     if command == 'extract':
         st.text('Extract images attached in a Jupyter Notebook and update the notebook with image paths.')
         notebook_path = st.file_uploader('Upload Jupyter Notebook', type=['ipynb'])
-        output_dir = st.text_input('Enter Output Directory Name:', value='extracted_images')
+        output_dir = st.text_input('Enter Output Directory Name:', value='notebook_images')
+        is_linux = st.checkbox('Is Linux?')
         
         if st.button('Extract Images and Update Notebook'):
             if notebook_path is not None:
                 with open(notebook_path.name, 'wb') as f:
                     f.write(notebook_path.getvalue())
-                extract_and_save_images(notebook_path.name, output_dir)
+                extract_and_save_images(notebook_path.name, output_dir, is_linux=is_linux)
 
     elif command == 'revert':
         st.text('Attach images back to a Jupyter Notebook from a folder of images.')
