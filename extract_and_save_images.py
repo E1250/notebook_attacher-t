@@ -7,7 +7,7 @@ from zipfile import ZipFile
 from utils import platform_path, platform_relpath
 
 def extract_and_save_images(notebook_path, output_dir, is_linux=False):
-    # try:
+    try:
         with open(notebook_path, 'r') as f:
             notebook_content = json.load(f)
         
@@ -18,6 +18,7 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
         total_image_count = 0
         for cell_num, cell in enumerate(notebook_content.get('cells', [])):
             attachments = cell.get('attachments', {})
+            sources = cell.get('source', [])
             new_source_lines = []
 
             for attachment_name, attachment_data in attachments.items():
@@ -33,10 +34,13 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
                     new_source_lines.append(f"![Image]({platform_path(is_linux, output_dir, image_filename)})\n")
                     
                     total_image_count += 1
-
+                    
+            for line_num, source_line in enumerate(sources):
+                if "](attachment:" in source_line:
+                    cell['source'][line_num] = new_source_lines.pop(0)
+            
             if total_image_count > 0:
                 cell['attachments'] = {}
-                cell['source'] = new_source_lines
 
         output_notebook_full_path = platform_path(is_linux, main_output_dir, notebook_path.split('/')[-1])
         with open(output_notebook_full_path, 'w') as f:
@@ -62,12 +66,12 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
                 mime="application/zip"
             )
         
-    # except FileNotFoundError:
-    #     st.error(f"File not found: {notebook_path}")
-    # except json.JSONDecodeError:
-    #     st.error(f"Error decoding JSON from the file: {notebook_path}")
-    # except Exception as e:
-    #     st.error(f"An error occurred: {e}")
+    except FileNotFoundError:
+        st.error(f"File not found: {notebook_path}")
+    except json.JSONDecodeError:
+        st.error(f"Error decoding JSON from the file: {notebook_path}")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
      
     
         
@@ -83,5 +87,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-        
-
