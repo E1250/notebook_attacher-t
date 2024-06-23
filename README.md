@@ -7,5 +7,7 @@ Attaching the images back to the notebook.
 
 ```
 
-### TO-DO:
-   * [x] Ability to only change the attached images src to the new directory. (change image directory name)
+To run the app locally use the following command:
+```
+streamlit run .\main.py
+```

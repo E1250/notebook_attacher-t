@@ -19,8 +19,9 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
         for cell_num, cell in enumerate(notebook_content.get('cells', [])):
             attachments = cell.get('attachments', {})
             sources = cell.get('source', [])
-            new_source_lines = []
+            new_source_lines = {}
 
+            # Extract every attachment
             for attachment_name, attachment_data in attachments.items():
                 for image_format, image_base64 in attachment_data.items():
                     image_bytes = base64.b64decode(image_base64)
@@ -31,18 +32,21 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
                     with open(image_path, 'wb') as img_file:
                         img_file.write(image_bytes)
                         
-                    new_source_lines.append(f"![Image]({platform_path(is_linux, output_dir, image_filename)})\n")
+                    new_source_lines[attachment_name] = f"![Image]({platform_path(is_linux, output_dir, image_filename)})\n"
                     
                     total_image_count += 1
-                    
+            
+            # Modify the source lines  
             for line_num, source_line in enumerate(sources):
                 if "](attachment:" in source_line:
-                    cell['source'][line_num] = new_source_lines.pop(0)
+                    # Cut the image name from the source line
+                    image_name = source_line.split("](attachment:")[1].split(")")[0]
+                    cell['source'][line_num] = new_source_lines[image_name]
             
             if total_image_count > 0:
                 cell['attachments'] = {}
 
-        output_notebook_full_path = platform_path(is_linux, main_output_dir, notebook_path.split('/')[-1])
+        output_notebook_full_path = platform_path(is_linux, main_output_dir, notebook_path.split('\\')[-1])
         with open(output_notebook_full_path, 'w') as f:
             json.dump(notebook_content, f, indent=4)
         
@@ -73,7 +77,6 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
     except Exception as e:
         st.error(f"An error occurred: {e}")
      
-    
         
         
 def main():
