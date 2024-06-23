@@ -51,6 +51,14 @@ if __name__ == "__main__":
                 with open(notebook_path, 'wb') as f:
                     f.write(notebook.getvalue())
                 extract_and_save_images(notebook_path, output_dir, is_linux=is_linux)
+                
+            # Show text
+            st.text('For faster unzip, run the following code in a cell in the Jupyter Notebook:')            
+            st.code(f'''
+                import zipfile
+                with zipfile.ZipFile('{output_dir}.zip', 'r') as zip_ref:
+                zip_ref.extractall()
+                ''')
 
     elif command == 'revert':
         st.text('Attach images back to a Jupyter Notebook from a folder of images.')
