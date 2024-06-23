@@ -5,6 +5,7 @@ import argparse
 import streamlit as st
 from zipfile import ZipFile
 from utils import platform_path, platform_relpath
+import re
 
 def extract_and_save_images(notebook_path, output_dir, is_linux=False):
     try:
@@ -46,7 +47,7 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
             if total_image_count > 0:
                 cell['attachments'] = {}
 
-        output_notebook_full_path = platform_path(is_linux, main_output_dir, notebook_path.split('\\')[-1])
+        output_notebook_full_path = platform_path(is_linux, main_output_dir, re.split(r'[\\/]', notebook_path)[-1])
         with open(output_notebook_full_path, 'w') as f:
             json.dump(notebook_content, f, indent=4)
         

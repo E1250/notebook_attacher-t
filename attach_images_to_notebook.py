@@ -3,6 +3,7 @@ import base64
 import argparse
 import streamlit as st
 import os
+import re
 
 def attach_images_back_to_notebook(notebook_path, outputs_dir = 'outputs'):
     try:
@@ -40,7 +41,7 @@ def attach_images_back_to_notebook(notebook_path, outputs_dir = 'outputs'):
                 cell['attachments'] = new_attachments
                 cell['source'] = new_source_lines
                 
-        output_nootebook_name = notebook_path.split('\\')[-1]
+        output_nootebook_name = re.split(r'[\\/]', notebook_path)[-1]
         with open(os.path.join(outputs_dir, output_nootebook_name), 'w') as f:
             json.dump(notebook_content, f, indent=4)
 
