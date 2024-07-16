@@ -8,7 +8,7 @@ from utils import platform_path, platform_relpath
 import re
 
 def extract_and_save_images(notebook_path, output_dir, is_linux=False):
-    try:
+    # try:
         with open(notebook_path, 'r') as f:
             notebook_content = json.load(f)
         
@@ -17,17 +17,22 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
         os.makedirs(platform_path(is_linux, main_output_dir, output_dir), exist_ok=True)
 
         total_image_count = 0
+        imgs_in_cell = 0
         for cell_num, cell in enumerate(notebook_content.get('cells', [])):
             attachments = cell.get('attachments', {})
             sources = cell.get('source', [])
+            cell_type = cell.get('cell_type')
             new_source_lines = {}
-
+            
+            # Check if the cell is markdown or dont have any attachments
+            if cell_type != 'markdown' and not attachments: continue # This line is important for DataCamp.
+            
             # Extract every attachment
             for attachment_name, attachment_data in attachments.items():
                 for image_format, image_base64 in attachment_data.items():
                     image_bytes = base64.b64decode(image_base64)
                     image_extension = image_format.split('/')[-1]
-                    image_filename = f"cell_{cell_num}_image_{total_image_count}.{image_extension}"
+                    image_filename = f"cell_{cell_num:02d}_img_{total_image_count:02d}.{image_extension}"
                     image_path = platform_path(is_linux, main_output_dir, output_dir, image_filename)
                     
                     with open(image_path, 'wb') as img_file:
@@ -36,16 +41,22 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
                     new_source_lines[attachment_name] = f"![Image]({platform_path(is_linux, output_dir, image_filename)})\n"
                     
                     total_image_count += 1
+                    imgs_in_cell += 1
             
             # Modify the source lines  
             for line_num, source_line in enumerate(sources):
                 if "](attachment:" in source_line:
                     # Cut the image name from the source line
                     image_name = source_line.split("](attachment:")[1].split(")")[0]
+                    print(image_name)
+                    print(new_source_lines)
+                    print("@@@"*50)
                     cell['source'][line_num] = new_source_lines[image_name]
             
-            if total_image_count > 0:
+            if (total_image_count > 0) :
                 cell['attachments'] = {}
+            imgs_in_cell = 0
+            
 
         output_notebook_full_path = platform_path(is_linux, main_output_dir, re.split(r'[\\/]', notebook_path)[-1])
         with open(output_notebook_full_path, 'w') as f:
@@ -71,12 +82,12 @@ def extract_and_save_images(notebook_path, output_dir, is_linux=False):
                 mime="application/zip"
             )
         
-    except FileNotFoundError:
-        st.error(f"File not found: {notebook_path}")
-    except json.JSONDecodeError:
-        st.error(f"Error decoding JSON from the file: {notebook_path}")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+    # except FileNotFoundError:
+        # st.error(f"File not found: {notebook_path}")
+    # except json.JSONDecodeError:
+        # st.error(f"Error decoding JSON from the file: {notebook_path}")
+    # except Exception as e:
+        # st.error(f"An error occurred: {e}")
      
         
         

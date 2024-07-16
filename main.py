@@ -42,23 +42,26 @@ if __name__ == "__main__":
     if command == 'extract':
         st.text('Extract images attached in a Jupyter Notebook and update the notebook with image paths.')
         notebook = st.file_uploader('Upload Jupyter Notebook', type=['ipynb'])
-        output_dir = st.text_input('Enter Output Directory Name:', value='notebook_images')
-        is_linux = st.checkbox('Is Linux?')
+        output_dir = st.text_input('Enter Images Directory Name:', value='notebook_images')
+        is_linux = st.checkbox('Is Linux?', help='Check this if you are running on a Linux platform to use the correct path separator.')
+        
+        # Show text
+        st.text('For faster unzip, run the following code in a cell in the Jupyter Notebook:')            
+        st.code(f'''
+            import os
+            import zipfile
+            with zipfile.ZipFile('{output_dir}.zip', 'r') as zip_ref:
+                zip_ref.extractall()
+            os.remove('{output_dir}.zip')
+            ''')
         
         if st.button('Extract Images and Update Notebook'):
             if notebook is not None:
                 notebook_path = os.path.join(main_upload_folder, notebook.name)
                 with open(notebook_path, 'wb') as f:
                     f.write(notebook.getvalue())
+                if os.path.exists('outputs'): shutil.rmtree('outputs')
                 extract_and_save_images(notebook_path, output_dir, is_linux=is_linux)
-                
-            # Show text
-            st.text('For faster unzip, run the following code in a cell in the Jupyter Notebook:')            
-            st.code(f'''
-                import zipfile
-                with zipfile.ZipFile('{output_dir}.zip', 'r') as zip_ref:
-                zip_ref.extractall()
-                ''')
 
     elif command == 'revert':
         st.text('Attach images back to a Jupyter Notebook from a folder of images.')
@@ -74,6 +77,7 @@ if __name__ == "__main__":
                 # Extracting images
                 with ZipFile(images_folder) as z:
                     z.extractall(path='uploads')
+                if os.path.exists('outputs'): shutil.rmtree('outputs')
                 attach_images_back_to_notebook(notebook_path)
                 
     # Removing uploads folder
